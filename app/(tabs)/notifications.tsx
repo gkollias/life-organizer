@@ -1,4 +1,4 @@
-// app/(tabs)/notifications.tsx
+// src/screens/notifications/NotificationsScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,22 +9,12 @@ import {
   ActivityIndicator,
   ListRenderItem
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  getDocs, 
-  updateDoc, 
-  doc, 
-  Timestamp 
-} from 'firebase/firestore';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { collection, query, where, orderBy, getDocs, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../../utils/firebase';
 import { useAuth } from '../../contexts/auth-context';
-import { BellIcon } from '../../components/ui/icons';
 import { COLORS, FONTS, SIZES } from '../../styles/theme';
-import { TextStyle } from 'react-native';
+import { BellIcon } from '../../components/ui/icons';
 
 // Define Notification interface
 interface Notification {
@@ -38,8 +28,7 @@ interface Notification {
   data?: Record<string, any>;
 }
 
-export default function NotificationsScreen() {
-  const insets = useSafeAreaInsets();
+const NotificationsScreen: React.FC = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -49,14 +38,10 @@ export default function NotificationsScreen() {
   }, [user]);
 
   const fetchNotifications = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
 
     try {
       setLoading(true);
-      
       const notificationsRef = collection(db, 'notifications');
       const q = query(
         notificationsRef,
@@ -138,22 +123,18 @@ export default function NotificationsScreen() {
       )}
     </TouchableOpacity>
   );
-  
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Notifications</Text>
       </View>
 
-      {notifications.length === 0 ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : notifications.length === 0 ? (
         <View style={styles.emptyContainer}>
           <BellIcon size={50} color={COLORS.lightGray} />
           <Text style={styles.emptyText}>No notifications yet</Text>
@@ -169,11 +150,10 @@ export default function NotificationsScreen() {
           contentContainerStyle={styles.notificationsList}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
-}
+};
 
-// Fix TypeScript issues with styles by explicitly typing styles that go to Text components
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -186,11 +166,11 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.lightGray,
   },
   title: {
-    fontSize: FONTS.h2.fontSize,
-    fontWeight: FONTS.h2.fontWeight as TextStyle['fontWeight'],
+    ...FONTS.h2,
     color: COLORS.black,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -219,20 +199,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notificationTitle: {
-    fontSize: FONTS.h4.fontSize,
-    fontWeight: FONTS.h4.fontWeight as TextStyle['fontWeight'],
+    ...FONTS.h4,
     color: COLORS.black,
     marginBottom: SIZES.base / 2,
   },
   notificationBody: {
-    fontSize: FONTS.body3.fontSize,
-    fontWeight: FONTS.body3.fontWeight as TextStyle['fontWeight'],
+    ...FONTS.body3,
     color: COLORS.gray,
     marginBottom: SIZES.base,
   },
   notificationTime: {
-    fontSize: FONTS.body4.fontSize,
-    fontWeight: FONTS.body4.fontWeight as TextStyle['fontWeight'],
+    ...FONTS.body4,
     color: COLORS.gray,
   },
   unreadDot: {
@@ -250,16 +227,16 @@ const styles = StyleSheet.create({
     padding: SIZES.padding * 2,
   },
   emptyText: {
-    fontSize: FONTS.h3.fontSize,
-    fontWeight: FONTS.h3.fontWeight as TextStyle['fontWeight'],
+    ...FONTS.h3,
     color: COLORS.gray,
     marginTop: SIZES.padding,
     marginBottom: SIZES.base,
   },
   emptySubtext: {
-    fontSize: FONTS.body3.fontSize,
-    fontWeight: FONTS.body3.fontWeight as TextStyle['fontWeight'],
+    ...FONTS.body3,
     color: COLORS.gray,
     textAlign: 'center',
   },
 });
+
+export default NotificationsScreen;
